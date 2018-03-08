@@ -1,4 +1,5 @@
 import { Entity } from './Entity';
+import { SystemContext } from './SystemContext';
 
 export abstract class System<C, K1 extends keyof C = never, K2 extends keyof C = never, K3 extends keyof C=never> {
     private keys: (keyof C)[];
@@ -8,7 +9,7 @@ export abstract class System<C, K1 extends keyof C = never, K2 extends keyof C =
         this.keys = keys;
     }
 
-    canHandle(e: Entity<any>):e is Entity<C> {
+    accepts(e: Entity<any>): e is Entity<C> {
         for (const key of this.keys) {
             if (!e.has(key)) {
                 return false;
@@ -17,9 +18,5 @@ export abstract class System<C, K1 extends keyof C = never, K2 extends keyof C =
         return true;
     }
 
-    update(e: Entity<C>) {
-        (this.handle as any)(...this.keys.map(key => e.get(key)));
-    }
-
-    abstract handle(t1: C[K1], t2: C[K2], t3: C[K3]);
+    abstract update(ctx:SystemContext<C>);
 }

@@ -1,9 +1,20 @@
 import { System } from './System';
 import { Entity } from './Entity';
+import { SystemContext } from './SystemContext';
 
-interface SystemDescriptor<T> {
-    system: System<T>;
-    entities: Set<Entity<T>>;
+class SystemDescriptor<T> {
+    readonly entities = new Set<Entity<T>>();
+    readonly systemContext: SystemContext<T>;
+
+    constructor(private system: System<T>, allEntity: Set<Entity<any>>) {
+        allEntity.forEach(e => {
+            if (system.accepts(e)) {
+                this.entities.add(e);
+            }
+        });
+
+        this.systemContext = new SystemContext<T>(this.entities);
+    }
 }
 
 export class Engine<T> {
@@ -15,17 +26,7 @@ export class Engine<T> {
             return;
         }
 
-        const entities = new Set<Entity<Partial<T>>>();
-        this.entities.forEach(e => {
-            if (system.canHandle(e)) {
-                entities.add(e);
-            }
-        });
-
-        const descriptor: SystemDescriptor<Partial<T>> = {
-            system,
-            entities
-        };
+        const descriptor: SystemDescriptor<Partial<T>> = new SystemDescriptor<Partial<T>>(system, this.entities);
 
         this.systems.set(system, descriptor);
     }
@@ -33,7 +34,7 @@ export class Engine<T> {
     addEntity(entity: Entity<Partial<T>>) {
         this.entities.add(entity);
         this.systems.forEach((descriptor, system) => {
-            if (system.canHandle(entity)) {
+            if (system.accepts(entity)) {
                 descriptor.entities.add(entity);
             }
         });
@@ -41,9 +42,7 @@ export class Engine<T> {
 
     update() {
         this.systems.forEach((descriptor, system) => {
-            descriptor.entities.forEach((entity) => {
-                system.update(entity);
-            });
+            system.update(descriptor.systemContext);
         });
     }
 }

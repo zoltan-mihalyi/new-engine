@@ -1,5 +1,6 @@
 import { System } from '../../core/System';
 import { Vector } from '../Vector';
+import { SystemContext } from '../../core/SystemContext';
 
 
 export interface Render {
@@ -12,14 +13,17 @@ export interface RenderComponent {
 }
 
 export class RenderSystem extends System<RenderComponent, 'render', 'position'> {
-    private ctx:CanvasRenderingContext2D;
+    private ctx: CanvasRenderingContext2D;
 
     constructor(private canvas: HTMLCanvasElement) {
         super('render', 'position');
         this.ctx = canvas.getContext('2d');
     }
 
-    handle(render: Render, position: Vector) {
-        render(this.ctx, position);
+    update(ctx: SystemContext<RenderComponent>) {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        ctx.forEachEntity(e => {
+            e.get('render')(this.ctx, e.get('position'));
+        });
     }
 }
