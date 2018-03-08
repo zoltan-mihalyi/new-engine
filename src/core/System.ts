@@ -1,15 +1,15 @@
 import { Entity } from './Entity';
 import { ListenerMap } from './ListenerMap';
+import { CK, Types } from './Types';
 
-export abstract class System<C, K1 extends keyof C = never, K2 extends keyof C = never, K3 extends keyof C=never> {
-    private keys: (keyof C)[];
+export abstract class System<T extends Types> {
+    private keys: CK<T>[];
 
-    constructor(k1?: K1, k2?: K2, k3?: K3);
-    constructor(...keys: (keyof C)[]) {
+    constructor(...keys: CK<T>[]) {
         this.keys = keys;
     }
 
-    accepts(e: Entity<any>): e is Entity<C> {
+    accepts(e: Entity<any>): e is Entity<T['components']> {
         for (const key of this.keys) {
             if (!e.has(key)) {
                 return false;
@@ -18,5 +18,5 @@ export abstract class System<C, K1 extends keyof C = never, K2 extends keyof C =
         return true;
     }
 
-    abstract getListeners(): ListenerMap<C>;
+    abstract getListeners(): ListenerMap<T>;
 }

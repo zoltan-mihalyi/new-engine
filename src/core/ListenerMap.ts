@@ -1,5 +1,6 @@
 import { SystemContext } from './SystemContext';
+import { EK, Types } from './Types';
 
-export interface ListenerMap<T> {
-    [key: string]: (ctx: SystemContext<T>) => void;
-}
+export type ListenerMap<T extends Types> = {
+    [K in EK<T>]: (ctx: SystemContext<T['components']>, payload: T['events'][K]) => void;
+    };

@@ -2,13 +2,14 @@ import { System } from './System';
 import { Entity } from './Entity';
 import { SystemContext } from './SystemContext';
 import { ListenerMap } from './ListenerMap';
+import { EK, SubTypes, Types } from './Types';
 
-class SystemDescriptor<T> {
-    readonly entities = new Set<Entity<T>>();
-    readonly systemContext: SystemContext<T>;
-    readonly listenerMap: ListenerMap<T>;
+class SystemDescriptor<T extends Types> {
+    readonly entities = new Set<Entity<T['components']>>();
+    readonly systemContext: SystemContext<T['components']>;
+    readonly listenerMap: ListenerMap<SubTypes<T>>;
 
-    constructor(readonly system: System<T>, allEntity: Set<Entity<any>>) {
+    constructor(readonly system: System<SubTypes<T>>, allEntity: Set<Entity<any>>) {
         allEntity.forEach(e => {
             if (system.accepts(e)) {
                 this.entities.add(e);
@@ -20,23 +21,26 @@ class SystemDescriptor<T> {
     }
 }
 
-export class Engine<T> {
-    private entities = new Set<Entity<Partial<T>>>();
-    private systems = new Map<System<Partial<T>>, SystemDescriptor<Partial<T>>>();
-    private systemsByEvent = new Map<string, Set<SystemDescriptor<Partial<T>>>>();
+export class Engine<T extends Types=Types> {
+    private entities = new Set<Entity<Partial<T['components']>>>();
+    private systems = new Map<System<SubTypes<T>>, SystemDescriptor<T>>();
+    private systemsByEvent = new Map<string, Set<SystemDescriptor<T>>>();
 
-    addSystem(system: System<Partial<T>>) {
+    addSystem(system: System<SubTypes<T>>) {
         if (this.systems.has(system)) {
             return;
         }
 
-        const descriptor: SystemDescriptor<Partial<T>> = new SystemDescriptor<Partial<T>>(system, this.entities);
+        const descriptor: SystemDescriptor<T> = new SystemDescriptor<T>(system, this.entities);
 
         this.systems.set(system, descriptor);
         for (const event in descriptor.listenerMap) {
+            if (!descriptor.listenerMap.hasOwnProperty(event)) {
+                continue;
+            }
             let systems = this.systemsByEvent.get(event);
             if (!systems) {
-                systems = new Set<SystemDescriptor<Partial<T>>>();
+                systems = new Set<SystemDescriptor<T>>();
                 this.systemsByEvent.set(event, systems);
             }
 
@@ -44,7 +48,7 @@ export class Engine<T> {
         }
     }
 
-    addEntity(entity: Entity<Partial<T>>) {
+    addEntity(entity: Entity<Partial<T['components']>>) {
         this.entities.add(entity);
         this.systems.forEach((descriptor, system) => {
             if (system.accepts(entity)) {
@@ -53,14 +57,14 @@ export class Engine<T> {
         });
     }
 
-    fire(event: string) {
+    fire<K extends EK<T>>(event: K, payload: T['events'][K]) {
         const systems = this.systemsByEvent.get(event);
         if (!systems) {
             return;
         }
 
         systems.forEach((d) => {
-            d.listenerMap[event].call(d.system, d.systemContext);
+            d.listenerMap[event].call(d.system, d.systemContext, payload);
         });
     }
 }

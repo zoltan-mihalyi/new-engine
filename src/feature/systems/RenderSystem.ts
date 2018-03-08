@@ -2,10 +2,11 @@ import { System } from '../../core/System';
 import { Vector } from '../Vector';
 import { SystemContext } from '../../core/SystemContext';
 import { ListenerMap } from '../../core/ListenerMap';
+import { Types } from '../../core/Types';
 
 
 export interface Render {
-    (ctx: CanvasRenderingContext2D, position: Vector): void;
+    (ctx: CanvasRenderingContext2D, position: Vector, ratio: number): void;
 }
 
 export interface RenderComponent {
@@ -13,7 +14,11 @@ export interface RenderComponent {
     render: Render;
 }
 
-export class RenderSystem extends System<RenderComponent, 'render', 'position'> {
+export interface RenderEvents {
+    render: number;
+}
+
+export class RenderSystem extends System<Types<RenderComponent, RenderEvents>> {
     private ctx: CanvasRenderingContext2D;
 
     constructor(private canvas: HTMLCanvasElement) {
@@ -21,16 +26,16 @@ export class RenderSystem extends System<RenderComponent, 'render', 'position'> 
         this.ctx = canvas.getContext('2d');
     }
 
-    getListeners(): ListenerMap<RenderComponent> {
+    getListeners(): ListenerMap<Types<RenderComponent, RenderEvents>> {
         return {
             render: this.render
         };
     }
 
-    private render(ctx: SystemContext<RenderComponent>) {
+    private render(ctx: SystemContext<RenderComponent>, payload: number) {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         ctx.forEachEntity(e => {
-            e.get('render')(this.ctx, e.get('position'));
+            e.get('render')(this.ctx, e.get('position'), payload);
         });
     }
 }

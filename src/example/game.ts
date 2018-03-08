@@ -1,17 +1,23 @@
 import { Engine } from '../core/Engine';
-import { Render, RenderComponent, RenderSystem } from '../feature/systems/RenderSystem';
+import { RenderComponent, RenderEvents, RenderSystem } from '../feature/systems/RenderSystem';
 import { Vector, VectorImpl } from '../feature/Vector';
 import { Entity } from '../core/Entity';
-import { PhysicsSystem } from '../feature/systems/PhysicsSystem';
+import { PhysicsComponent, PhysicsSystem } from '../feature/systems/PhysicsSystem';
+import { UpdateEvents } from '../feature/systems/UpdateEvents';
 
 
-interface MyComponents {
-    position: Vector;
-    velocity: Vector;
-    render: Render;
+interface MyComponents extends RenderComponent, PhysicsComponent {
 }
 
-const engine = new Engine<MyComponents>();
+interface MyEvents extends RenderEvents, UpdateEvents {
+}
+
+interface MyTypes {
+    components: MyComponents;
+    events: MyEvents;
+}
+
+const engine = new Engine<MyTypes>();
 const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 
 
@@ -28,11 +34,12 @@ engine.addEntity(new Entity<Partial<MyComponents>>({
 }));
 
 setInterval(() => {
-    engine.fire('update');
+    engine.fire('update', void 0);
 }, 200);
 
-function render(){
-    engine.fire('render');
+function render() {
+    engine.fire('render', 0);
     requestAnimationFrame(render);
 }
+
 render();
