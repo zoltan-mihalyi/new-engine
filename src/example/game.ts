@@ -28,5 +28,11 @@ engine.addEntity(new Entity<Partial<MyComponents>>({
 }));
 
 setInterval(() => {
-    engine.update();
+    engine.fire('update');
 }, 200);
+
+function render(){
+    engine.fire('render');
+    requestAnimationFrame(render);
+}
+render();

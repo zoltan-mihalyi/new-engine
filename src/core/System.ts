@@ -1,5 +1,5 @@
 import { Entity } from './Entity';
-import { SystemContext } from './SystemContext';
+import { ListenerMap } from './ListenerMap';
 
 export abstract class System<C, K1 extends keyof C = never, K2 extends keyof C = never, K3 extends keyof C=never> {
     private keys: (keyof C)[];
@@ -18,5 +18,5 @@ export abstract class System<C, K1 extends keyof C = never, K2 extends keyof C =
         return true;
     }
 
-    abstract update(ctx:SystemContext<C>);
+    abstract getListeners(): ListenerMap<C>;
 }

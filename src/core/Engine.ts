@@ -1,12 +1,14 @@
 import { System } from './System';
 import { Entity } from './Entity';
 import { SystemContext } from './SystemContext';
+import { ListenerMap } from './ListenerMap';
 
 class SystemDescriptor<T> {
     readonly entities = new Set<Entity<T>>();
     readonly systemContext: SystemContext<T>;
+    readonly listenerMap: ListenerMap<T>;
 
-    constructor(private system: System<T>, allEntity: Set<Entity<any>>) {
+    constructor(readonly system: System<T>, allEntity: Set<Entity<any>>) {
         allEntity.forEach(e => {
             if (system.accepts(e)) {
                 this.entities.add(e);
@@ -14,12 +16,14 @@ class SystemDescriptor<T> {
         });
 
         this.systemContext = new SystemContext<T>(this.entities);
+        this.listenerMap = system.getListeners();
     }
 }
 
 export class Engine<T> {
     private entities = new Set<Entity<Partial<T>>>();
     private systems = new Map<System<Partial<T>>, SystemDescriptor<Partial<T>>>();
+    private systemsByEvent = new Map<string, Set<SystemDescriptor<Partial<T>>>>();
 
     addSystem(system: System<Partial<T>>) {
         if (this.systems.has(system)) {
@@ -29,6 +33,15 @@ export class Engine<T> {
         const descriptor: SystemDescriptor<Partial<T>> = new SystemDescriptor<Partial<T>>(system, this.entities);
 
         this.systems.set(system, descriptor);
+        for (const event in descriptor.listenerMap) {
+            let systems = this.systemsByEvent.get(event);
+            if (!systems) {
+                systems = new Set<SystemDescriptor<Partial<T>>>();
+                this.systemsByEvent.set(event, systems);
+            }
+
+            systems.add(descriptor);
+        }
     }
 
     addEntity(entity: Entity<Partial<T>>) {
@@ -40,9 +53,14 @@ export class Engine<T> {
         });
     }
 
-    update() {
-        this.systems.forEach((descriptor, system) => {
-            system.update(descriptor.systemContext);
+    fire(event: string) {
+        const systems = this.systemsByEvent.get(event);
+        if (!systems) {
+            return;
+        }
+
+        systems.forEach((d) => {
+            d.listenerMap[event].call(d.system, d.systemContext);
         });
     }
 }

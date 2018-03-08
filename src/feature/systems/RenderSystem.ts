@@ -1,6 +1,7 @@
 import { System } from '../../core/System';
 import { Vector } from '../Vector';
 import { SystemContext } from '../../core/SystemContext';
+import { ListenerMap } from '../../core/ListenerMap';
 
 
 export interface Render {
@@ -20,7 +21,13 @@ export class RenderSystem extends System<RenderComponent, 'render', 'position'> 
         this.ctx = canvas.getContext('2d');
     }
 
-    update(ctx: SystemContext<RenderComponent>) {
+    getListeners(): ListenerMap<RenderComponent> {
+        return {
+            render: this.render
+        };
+    }
+
+    private render(ctx: SystemContext<RenderComponent>) {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         ctx.forEachEntity(e => {
             e.get('render')(this.ctx, e.get('position'));
