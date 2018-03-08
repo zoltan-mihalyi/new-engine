@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "baseUrl": "src",
+    "sourceMap": true,
+    "outDir": "lib",
+    "module": "esnext",
+    "lib": [
+      "es6",
+      "dom"
+    ]
+  }
+}
