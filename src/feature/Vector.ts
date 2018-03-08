@@ -1,15 +1,5 @@
-export interface Vector {
-    getX(): number;
-
-    getY(): number;
-
-    setX(x: number);
-
-    setY(y: number);
-}
-
-export class VectorImpl implements Vector {
-    constructor(private x: number, private y: number) {
+export class Vector {
+    constructor(protected x: number, protected y: number) {
     }
 
     getX(): number {
@@ -26,5 +16,59 @@ export class VectorImpl implements Vector {
 
     setY(y: number) {
         this.y = y;
+    }
+
+    noInterpolate() {
+    }
+
+    getInterpolatedX(ratio: number): number {
+        return this.x;
+    }
+
+    getInterpolatedY(ratio: number): number {
+        return this.y;
+    }
+
+    swap() {
+    }
+}
+
+export class DoubleBufferedVector extends Vector {
+    private interpolate = true;
+
+    constructor(private nextX: number, private nextY: number) {
+        super(nextX, nextY);
+    }
+
+    setX(x: number) {
+        this.nextX = x;
+    }
+
+    setY(y: number) {
+        this.nextY = y;
+    }
+
+    noInterpolate() {
+        this.interpolate = false;
+    }
+
+    swap() {
+        this.x = this.nextX;
+        this.y = this.nextY;
+        this.interpolate = true;
+    }
+
+    getInterpolatedX(ratio: number): number {
+        if (this.interpolate) {
+            return this.x + (this.nextX - this.x) * ratio;
+        }
+        return this.x;
+    }
+
+    getInterpolatedY(ratio: number): number {
+        if (this.interpolate) {
+            return this.y + (this.nextY - this.y) * ratio;
+        }
+        return this.y;
     }
 }
