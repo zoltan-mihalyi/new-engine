@@ -26,14 +26,8 @@ export class PhysicsSystem extends System<Types<PhysicsComponent, UpdateEvents>>
             const position = entity.get('position');
             const velocity = entity.get('velocity');
 
-            position.setX(position.getX() + velocity.getX());
-            position.setY(position.getY() + velocity.getY());
-
-            if (Math.random() < 0.1) {
-                position.setX(Math.random() * 200);
-                position.setY(0);
-                position.noInterpolate();
-            }
+            position.increaseX(velocity.getX());
+            position.increaseY(velocity.getY());
         });
     }
 }

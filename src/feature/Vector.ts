@@ -18,6 +18,14 @@ export class Vector {
         this.y = y;
     }
 
+    increaseX(dx: number) {
+        this.x += dx;
+    }
+
+    increaseY(dy: number) {
+        this.y += dy;
+    }
+
     noInterpolate() {
     }
 
@@ -38,6 +46,14 @@ export class DoubleBufferedVector extends Vector {
 
     constructor(private nextX: number, private nextY: number) {
         super(nextX, nextY);
+    }
+
+    increaseX(dx: number) {
+        this.nextX += dx;
+    }
+
+    increaseY(dy: number) {
+        this.nextY += dy;
     }
 
     setX(x: number) {
