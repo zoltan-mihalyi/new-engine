@@ -4,10 +4,11 @@ import { DoubleBufferedVector, Vector } from '../feature/Vector';
 import { PhysicsComponent, PhysicsSystem } from '../feature/systems/PhysicsSystem';
 import { UpdateEvents } from '../feature/systems/UpdateEvents';
 import { ControlComponent, ControlSystem } from './ControlSystem';
-import { Control } from './components/control/Control';
 import { KeyboardHandler } from '../feature/KeyboardHandler';
 import { KeySet, PlayerControl } from './components/control/PlayerControl';
 import { AIControl } from './components/control/AIControl';
+import { CharacterRenderer } from './components/CharacterRenderer';
+import { Control } from './components/control/Control';
 
 
 interface MyComponents extends RenderComponent, PhysicsComponent, ControlComponent {
@@ -17,8 +18,8 @@ interface MyEvents extends RenderEvents, UpdateEvents {
 }
 
 interface MyTypes {
-    components: MyComponents;
-    events: MyEvents;
+    components:MyComponents;
+    events:MyEvents;
 }
 
 const engine = new Engine<MyTypes>();
@@ -29,32 +30,32 @@ engine.addSystem(new RenderSystem(canvas));
 engine.addSystem(new PhysicsSystem());
 engine.addSystem(new ControlSystem());
 
-function createBox(x: number, y: number, vx: number, vy: number, control: Control): Partial<MyComponents> {
+function createCharacter(x:number, y:number, vx:number, vy:number, control:Control):Partial<MyComponents & { renderer:CharacterRenderer }> {
+    const renderer = new CharacterRenderer();
+
     return {
         position: new DoubleBufferedVector(x, y),
         velocity: new Vector(vx, vy),
-        render: (ctx: CanvasRenderingContext2D, x, y) => {
-            ctx.fillStyle = 'red';
-            ctx.fillRect(x, y, 20, 20);
-        },
-        control
+        renderer,
+        control,
     };
 }
 
-const keySet: KeySet = {
+const keySet:KeySet = {
     left: 37,
     up: 38,
     right: 39,
     down: 40,
-    fire: 17
+    fire: 17,
 };
 
-const ai = engine.addEntity(createBox(10, 20, 0, 8, new AIControl()));
-const player = engine.addEntity(createBox(100, 20, 0, 8, new PlayerControl(keyboardHandler, keySet)));
+const ai = engine.addEntity(createCharacter(10, 20, 0, 0, new AIControl()));
+const player = engine.addEntity(createCharacter(100, 20, 0, 0, new PlayerControl(keyboardHandler, keySet)));
 
 setInterval(() => {
     const playerControl = player.get('control');
     const aiControl = ai.get('control');
+
     player.set('control', aiControl);
     ai.set('control', playerControl);
 }, 5000);

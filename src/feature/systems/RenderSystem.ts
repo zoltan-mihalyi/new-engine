@@ -4,15 +4,16 @@ import { SystemContext } from '../../core/SystemContext';
 import { ListenerMap } from '../../core/ListenerMap';
 import { Types } from '../../core/Types';
 import { UpdateEvents } from './UpdateEvents';
+import { Entity } from '../../core/Entity';
 
 
-export interface Render {
-    (ctx: CanvasRenderingContext2D, x: number, y: number): void;
+export interface Renderer {
+    render(ctx: CanvasRenderingContext2D, x: number, y: number, entity: Entity<RenderComponent>): void;
 }
 
 export interface RenderComponent {
     position: Vector;
-    render: Render;
+    renderer: Renderer;
 }
 
 export interface RenderEvents extends UpdateEvents{
@@ -23,7 +24,7 @@ export class RenderSystem extends System<Types<RenderComponent, RenderEvents>> {
     private ctx: CanvasRenderingContext2D;
 
     constructor(private canvas: HTMLCanvasElement) {
-        super('render', 'position');
+        super('renderer', 'position');
         this.ctx = canvas.getContext('2d')!;
     }
 
@@ -38,7 +39,7 @@ export class RenderSystem extends System<Types<RenderComponent, RenderEvents>> {
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         ctx.forEachEntity(e => {
             const position = e.get('position');
-            e.get('render')(this.ctx, position.getInterpolatedX(ratio), position.getInterpolatedY(ratio));
+            e.get('renderer').render(this.ctx, position.getInterpolatedX(ratio), position.getInterpolatedY(ratio), e);
         });
     }
 
