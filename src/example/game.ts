@@ -35,7 +35,7 @@ function createBox(x: number, y: number, vx: number, vy: number, control: Contro
         velocity: new Vector(vx, vy),
         render: (ctx: CanvasRenderingContext2D, x, y) => {
             ctx.fillStyle = 'red';
-            ctx.fillRect(x, y, 20, 20)
+            ctx.fillRect(x, y, 20, 20);
         },
         control
     };
@@ -49,15 +49,19 @@ const keySet: KeySet = {
     fire: 17
 };
 
-engine.addEntity(createBox(10, 20, 0, 8, new AIControl()));
+const ai = engine.addEntity(createBox(10, 20, 0, 8, new AIControl()));
 const player = engine.addEntity(createBox(100, 20, 0, 8, new PlayerControl(keyboardHandler, keySet)));
 
-setTimeout(() => player.remove('control'), 2000);
+setInterval(() => {
+    const playerControl = player.get('control');
+    const aiControl = ai.get('control');
+    player.set('control', aiControl);
+    ai.set('control', playerControl);
+}, 5000);
 
 let lastUpdate = new Date().getTime();
 setInterval(() => {
     lastUpdate = new Date().getTime();
-    engine.fire('swap', void 0);
     engine.fire('update', void 0);
     keyboardHandler.reset();
 }, 200);

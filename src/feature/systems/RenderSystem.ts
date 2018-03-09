@@ -3,6 +3,7 @@ import { Vector } from '../Vector';
 import { SystemContext } from '../../core/SystemContext';
 import { ListenerMap } from '../../core/ListenerMap';
 import { Types } from '../../core/Types';
+import { UpdateEvents } from './UpdateEvents';
 
 
 export interface Render {
@@ -14,9 +15,8 @@ export interface RenderComponent {
     render: Render;
 }
 
-export interface RenderEvents {
+export interface RenderEvents extends UpdateEvents{
     render: number;
-    swap: void;
 }
 
 export class RenderSystem extends System<Types<RenderComponent, RenderEvents>> {
@@ -30,7 +30,7 @@ export class RenderSystem extends System<Types<RenderComponent, RenderEvents>> {
     getListeners(): ListenerMap<Types<RenderComponent, RenderEvents>> {
         return {
             render: this.render,
-            swap: this.swap
+            update: this.update
         };
     }
 
@@ -42,7 +42,7 @@ export class RenderSystem extends System<Types<RenderComponent, RenderEvents>> {
         });
     }
 
-    private swap(ctx: SystemContext<RenderComponent>) {
+    private update(ctx: SystemContext<RenderComponent>) {
         ctx.forEachEntity(e => e.get('position').swap());
     }
 }
