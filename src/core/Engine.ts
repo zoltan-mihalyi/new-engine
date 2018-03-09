@@ -7,9 +7,9 @@ import { EK, SubTypes, Types } from './Types';
 class SystemDescriptor<T extends Types> {
     readonly entities = new Set<Entity<T['components']>>();
     readonly systemContext: SystemContext<T['components']>;
-    readonly listenerMap: ListenerMap<SubTypes<T>>;
+    readonly listenerMap: ListenerMap<T>;
 
-    constructor(readonly system: System<SubTypes<T>>, allEntity: Set<Entity<any>>) {
+    constructor(readonly system: System<T>, allEntity: Set<Entity<any>>) {
         allEntity.forEach(e => {
             if (system.accepts(e)) {
                 this.entities.add(e);
@@ -48,15 +48,15 @@ class EntityImpl<T> implements Entity<T> {
 
 export class Engine<T extends Types=Types> {
     private entities = new Set<Entity<Partial<T['components']>>>();
-    private systems = new Map<System<SubTypes<T>>, SystemDescriptor<T>>();
-    private systemsByEvent = new Map<string, Set<SystemDescriptor<T>>>();
+    private systems = new Map<System<any>, SystemDescriptor<any>>();
+    private systemsByEvent = new Map<EK<T>, Set<SystemDescriptor<any>>>();
 
-    addSystem(system: System<SubTypes<T>>) {
+    addSystem<S extends SubTypes<T>>(system: System<S>) {
         if (this.systems.has(system)) {
             return;
         }
 
-        const descriptor: SystemDescriptor<T> = new SystemDescriptor<T>(system, this.entities);
+        const descriptor = new SystemDescriptor<S>(system, this.entities);
 
         this.systems.set(system, descriptor);
         for (const event in descriptor.listenerMap) {

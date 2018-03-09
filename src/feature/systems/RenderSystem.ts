@@ -1,5 +1,5 @@
 import { System } from '../../core/System';
-import { DoubleBufferedVector, Vector } from '../Vector';
+import { Vector } from '../Vector';
 import { SystemContext } from '../../core/SystemContext';
 import { ListenerMap } from '../../core/ListenerMap';
 import { Types } from '../../core/Types';
@@ -24,7 +24,7 @@ export class RenderSystem extends System<Types<RenderComponent, RenderEvents>> {
 
     constructor(private canvas: HTMLCanvasElement) {
         super('render', 'position');
-        this.ctx = canvas.getContext('2d');
+        this.ctx = canvas.getContext('2d')!;
     }
 
     getListeners(): ListenerMap<Types<RenderComponent, RenderEvents>> {

@@ -1,5 +1,5 @@
 export class KeyboardHandler {
-    private document: Document;
+    private document: Document | null = null;
 
     private preventKeys = new Set<number>();
 

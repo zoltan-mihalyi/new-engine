@@ -1,7 +1,6 @@
 import { Engine } from '../core/Engine';
 import { RenderComponent, RenderEvents, RenderSystem } from '../feature/systems/RenderSystem';
 import { DoubleBufferedVector, Vector } from '../feature/Vector';
-import { Entity } from '../core/Entity';
 import { PhysicsComponent, PhysicsSystem } from '../feature/systems/PhysicsSystem';
 import { UpdateEvents } from '../feature/systems/UpdateEvents';
 import { ControlComponent, ControlSystem } from './ControlSystem';
@@ -30,7 +29,7 @@ engine.addSystem(new RenderSystem(canvas));
 engine.addSystem(new PhysicsSystem());
 engine.addSystem(new ControlSystem());
 
-function createBox(x, y, vx, vy, control: Control): Partial<MyComponents> {
+function createBox(x: number, y: number, vx: number, vy: number, control: Control): Partial<MyComponents> {
     return {
         position: new DoubleBufferedVector(x, y),
         velocity: new Vector(vx, vy),

@@ -9,7 +9,7 @@ export abstract class System<T extends Types> {
         this.keys = keys;
     }
 
-    accepts(e: Entity<any>): e is Entity<T['components']> {
+    accepts(e: Entity<Partial<T['components']>>): e is Entity<T['components']> {
         for (const key of this.keys) {
             if (!e.has(key)) {
                 return false;
