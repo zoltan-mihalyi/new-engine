@@ -30,8 +30,8 @@ engine.addSystem(new RenderSystem(canvas));
 engine.addSystem(new PhysicsSystem());
 engine.addSystem(new ControlSystem());
 
-function createBox(x, y, vx, vy, control: Control): Entity<Partial<MyComponents>> {
-    return new Entity<Partial<MyComponents>>({
+function createBox(x, y, vx, vy, control: Control): Partial<MyComponents> {
+    return {
         position: new DoubleBufferedVector(x, y),
         velocity: new Vector(vx, vy),
         render: (ctx: CanvasRenderingContext2D, x, y) => {
@@ -39,7 +39,7 @@ function createBox(x, y, vx, vy, control: Control): Entity<Partial<MyComponents>
             ctx.fillRect(x, y, 20, 20)
         },
         control
-    });
+    };
 }
 
 const keySet: KeySet = {
@@ -51,7 +51,9 @@ const keySet: KeySet = {
 };
 
 engine.addEntity(createBox(10, 20, 0, 8, new AIControl()));
-engine.addEntity(createBox(100, 20, 0, 8, new PlayerControl(keyboardHandler, keySet)));
+const player = engine.addEntity(createBox(100, 20, 0, 8, new PlayerControl(keyboardHandler, keySet)));
+
+setTimeout(() => player.remove('control'), 2000);
 
 let lastUpdate = new Date().getTime();
 setInterval(() => {

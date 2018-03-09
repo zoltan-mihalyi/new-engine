@@ -1,22 +1,9 @@
-export class Entity<T> {
-    constructor(private components: T) {
+export interface Entity<T> {
+    get<K extends keyof T>(key: K): T[K];
 
-    }
+    set<K extends keyof T>(key: K, value: T[K]): this;
 
-    get<K extends keyof T>(key: K): T[K] {
-        return this.components[key];
-    }
+    has<K extends keyof T>(key: K): boolean;
 
-    set<K extends keyof T>(key: K, value: T[K]): this {
-        this.components[key] = value;
-        return this;
-    }
-
-    has<K extends keyof T>(key: K) {
-        return this.components.hasOwnProperty(key);
-    }
-
-    remove<K extends keyof T>(key: K) {
-        delete this.components[key];
-    }
+    remove<K extends keyof T>(key: K): this;
 }

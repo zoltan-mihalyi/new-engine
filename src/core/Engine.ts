@@ -21,6 +21,31 @@ class SystemDescriptor<T extends Types> {
     }
 }
 
+class EntityImpl<T> implements Entity<T> {
+    constructor(private entityChanged: (e: Entity<T>) => void, private components: T) {
+    }
+
+    get<K extends keyof T>(key: K): T[K] {
+        return this.components[key];
+    }
+
+    set<K extends keyof T>(key: K, value: T[K]): this {
+        this.components[key] = value;
+        this.entityChanged(this);
+        return this;
+    }
+
+    has<K extends keyof T>(key: K): boolean {
+        return this.components.hasOwnProperty(key);
+    }
+
+    remove<K extends keyof T>(key: K): this {
+        delete this.components[key];
+        this.entityChanged(this);
+        return this;
+    }
+}
+
 export class Engine<T extends Types=Types> {
     private entities = new Set<Entity<Partial<T['components']>>>();
     private systems = new Map<System<SubTypes<T>>, SystemDescriptor<T>>();
@@ -48,13 +73,17 @@ export class Engine<T extends Types=Types> {
         }
     }
 
-    addEntity(entity: Entity<Partial<T['components']>>) {
+    addEntity<C extends Partial<T['components']>>(components: C): Entity<C> {
+        const entity = new EntityImpl(this.entityChanged, components);
+
         this.entities.add(entity);
         this.systems.forEach((descriptor, system) => {
             if (system.accepts(entity)) {
                 descriptor.entities.add(entity);
             }
         });
+
+        return entity;
     }
 
     fire<K extends EK<T>>(event: K, payload: T['events'][K]) {
@@ -67,4 +96,16 @@ export class Engine<T extends Types=Types> {
             d.listenerMap[event].call(d.system, d.systemContext, payload);
         });
     }
+
+    private entityChanged = <C>(entity: Entity<C>) => {
+        this.systems.forEach((descriptor, system) => {
+            const hasEntity = descriptor.entities.has(entity);
+            const accepts = system.accepts(entity);
+            if (hasEntity && !accepts) {
+                descriptor.entities.delete(entity);
+            } else if (!hasEntity && accepts) {
+                descriptor.entities.add(entity);
+            }
+        });
+    };
 }
