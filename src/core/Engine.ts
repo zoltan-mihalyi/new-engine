@@ -2,7 +2,7 @@ import { System } from './System';
 import { Entity } from './Entity';
 import { SystemContext } from './SystemContext';
 import { ListenerMap } from './ListenerMap';
-import { EK, SubTypes, Types } from './Types';
+import { EK, Types } from './Types';
 
 class SystemDescriptor<T extends Types> {
     readonly entities = new Set<Entity<T['components']>>();
@@ -48,15 +48,15 @@ class EntityImpl<T> implements Entity<T> {
 
 export class Engine<T extends Types=Types> {
     private entities = new Set<Entity<Partial<T['components']>>>();
-    private systems = new Map<System<any>, SystemDescriptor<any>>();
-    private systemsByEvent = new Map<EK<T>, Set<SystemDescriptor<any>>>();
+    private systems = new Map<System<T>, SystemDescriptor<T>>();
+    private systemsByEvent = new Map<EK<T>, Set<SystemDescriptor<T>>>();
 
-    addSystem<S extends SubTypes<T>>(system: System<S>) {
+    addSystem(system: System<T>) {
         if (this.systems.has(system)) {
             return;
         }
 
-        const descriptor = new SystemDescriptor<S>(system, this.entities);
+        const descriptor = new SystemDescriptor<T>(system, this.entities);
 
         this.systems.set(system, descriptor);
         for (const event in descriptor.listenerMap) {
@@ -93,7 +93,7 @@ export class Engine<T extends Types=Types> {
         }
 
         systems.forEach((d) => {
-            d.listenerMap[event].call(d.system, d.systemContext, payload);
+            (d.listenerMap[event] as Function).call(d.system, d.systemContext, payload);
         });
     }
 
