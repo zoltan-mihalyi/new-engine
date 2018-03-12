@@ -9,9 +9,11 @@ import { KeySet, PlayerControl } from './components/control/PlayerControl';
 import { AIControl } from './components/control/AIControl';
 import { CharacterRenderer } from './components/CharacterRenderer';
 import { Control } from './components/control/Control';
+import { CollidableComponent, CollisionSystem, SimpleBounds } from '../feature/systems/CollisionSystem';
+import { Entity } from '../core/Entity';
 
 
-interface MyComponents extends RenderComponent, PhysicsComponent, ControlComponent {
+interface MyComponents extends RenderComponent, PhysicsComponent, ControlComponent, CollidableComponent {
 }
 
 interface MyEvents extends RenderEvents, UpdateEvents {
@@ -29,6 +31,7 @@ const canvas = document.getElementById('canvas') as HTMLCanvasElement;
 engine.addSystem(new RenderSystem(canvas));
 engine.addSystem(new PhysicsSystem());
 engine.addSystem(new ControlSystem());
+engine.addSystem(new CollisionSystem());
 
 function createCharacter(x:number, y:number, vx:number, vy:number, control:Control):Partial<MyComponents & { renderer:CharacterRenderer }> {
     const renderer = new CharacterRenderer();
@@ -36,6 +39,10 @@ function createCharacter(x:number, y:number, vx:number, vy:number, control:Contr
     return {
         position: new DoubleBufferedVector(x, y),
         velocity: new Vector(vx, vy),
+        bounds: new SimpleBounds(10, 10),
+        onCollision: (me:Entity<Partial<MyComponents>>, other:Entity<Partial<MyComponents>>) => {
+            console.log(other)
+        },
         renderer,
         control,
     };
